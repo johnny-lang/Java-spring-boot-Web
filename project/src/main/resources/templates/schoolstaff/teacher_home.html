@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <!-- CSS Bootstrap -->
+    <link rel="icon" type="image/x-icon" th:href="@{/assets/favicon.ico}" />
+    <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+    <!-- CanvasJS -->
+    <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<div class="d-flex" id="wrapper">
+    <!-- Sidebar-->
+    <div class="border-end bg-white" id="sidebar-wrapper">
+        <div class="sidebar-heading border-bottom bg-light">Option</div>
+        <div class="list-group list-group-flush">
+            <a class="list-group-item list-group-item-action list-group-item-light p-3" th:href="@{/students/username}" data-url="/schoolstaff/username">Teacher Information</a>
+            <a class="list-group-item list-group-item-action list-group-item-light p-3" th:href="@{/subject/teacher}" data-url="/subject/teacher">Classes</a>
+            <a class="list-group-item list-group-item-action list-group-item-light p-3" th:href="@{/scoreboard/grade}" data-url="/scoreboard/grade">Grade</a>
+        </div>
+    </div>
+    <!-- Page content wrapper-->
+    <div id="page-content-wrapper">
+        <!-- Top navigation-->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+            <div class="container-fluid">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav ms-auto mt-2 mt-lg-0">
+                        <!--                            <li class="nav-item active"><a class="nav-link" href="#!">Home</a></li>-->
+                        <!--                            <li class="nav-item"><a class="nav-link" href="#!">Link</a></li>-->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Dropdown</a>
+                            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                <form th:action="@{/logout}" method="POST">
+                                    <button type="submit" class="dropdown-item">Logout</button>
+                                </form>
+                                <div class="dropdown-divider"></div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <!-- Page content-->
+        <div id="content-area" class="container mt-4">
+            <!-- Nội dung sẽ được tải qua AJAX ở đây -->
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap core JS-->
+<script th:src="@{../js/bootstrap.bundle.min.js}"></script>
+<!-- Core theme JS-->
+<script th:src="@{../js/scripts.js}"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Lấy tất cả các liên kết trong sidebar
+        const links = document.querySelectorAll(".list-group-item");
+
+        links.forEach(link => {
+            link.addEventListener("click", function(event) {
+                event.preventDefault();
+                const url = link.getAttribute("data-url");
+
+                // Gửi yêu cầu AJAX
+                fetch(url, {
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    // Chèn nội dung của fragment vào vùng #content-area
+                    document.querySelector("#content-area").innerHTML = html;
+
+                    // Khởi tạo biểu đồ nếu `#chartContainer` có mặt trong nội dung được tải
+                    if (document.querySelector("#chartContainer")) {
+                        initChart();
+                    }
+
+                    // Gắn sự kiện cho nút Save
+                    attachSaveButtonHandlers();
+                })
+                .catch(error => console.error("Lỗi khi tải nội dung trang:", error));
+            });
+        });
+
+        function initChart() {
+            fetch("/feedback/data")
+                .then(response => response.json())
+                .then(data => {
+                    var dataPoints = [
+                        { label: "positive", y: data.Positive || 0 },
+                        { label: "neutral", y: data.Neutral || 0 },
+                        { label: "negative", y: data.Negative || 0 }
+                    ];
+
+                    var chart = new CanvasJS.Chart("chartContainer", {
+                        title: {
+                            text: "Feedback Chart"
+                        },
+                        axisY: {
+                            gridThickness: 0,
+                            interval: 1,
+                            labelFormatter: function (e) {
+                                return Math.round(e.value);
+                            }
+                        },
+                        data: [{
+                            type: "column",
+                            dataPoints: dataPoints,
+                            indexLabel: "{y}",
+                            indexLabelPlacement: "outside",
+                            indexLabelFontColor: "#000",
+                            indexLabelFontSize: 14
+                        }]
+                    });
+
+                    chart.render();
+                })
+                .catch(error => console.error("Error fetching data:", error));
+        }
+
+        function attachSaveButtonHandlers() {
+            const saveButtons = document.querySelectorAll(".save-button");
+
+            saveButtons.forEach(button => {
+                button.addEventListener("click", function () {
+                    const row = button.closest("tr");
+                    const studentId = row.querySelector(".studentId").value;
+                    const subjectId = row.querySelector(".subjectId").value;
+                    const score10Percent = row.querySelector(".score10Percent").value;
+                    const score20Percent = row.querySelector(".score20Percent").value;
+                    const projectScore = row.querySelector(".projectScore").value;
+
+                    fetch("/scoreboard/grade/update", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            studentId: studentId,
+                            subjectId: subjectId,
+                            score10Percent: parseFloat(score10Percent),
+                            score20Percent: parseFloat(score20Percent),
+                            projectScore: parseFloat(projectScore)
+                        })
+                    })
+                    .then(response => response.text())
+                    .then(data => {
+                        if (data === "Scores updated successfully.") {
+                            alert("Scores updated successfully!");
+                        } else {
+                            alert("Failed to update scores.");
+                        }
+                    })
+                    .catch(error => console.error("Error updating scores:", error));
+                });
+            });
+        }
+
+        window.onload = function() {
+            initChart();
+        }
+    });
+</script>
+</body>
+</html>

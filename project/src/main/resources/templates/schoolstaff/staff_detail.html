@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Teacher Details</title>
+</head>
+<body>
+<div class="container" th:fragment="staffDetails">
+    <h1>Teacher Details</h1>
+    <table class="table table-striped">
+        <tr>
+            <th>ID</th>
+            <td th:text="${schoolstaff.id}">1</td>
+        </tr>
+        <tr>
+            <th>Name</th>
+            <td th:text="${schoolstaff.name}">Staff Name</td>
+        </tr>
+        <tr>
+            <th>Email</th>
+            <td th:text="${schoolstaff.email}">email</td>
+        </tr>
+        <tr>
+            <th>Phone Number</th>
+            <td th:text="${schoolstaff.phoneNumber}">Phone number</td>
+        </tr>
+    </table>
+
+    <!-- Biểu đồ -->
+    <div style="display: flex;">
+        <!-- Phần biểu đồ -->
+        <div id="chartContainer" style="width: 50%; height: 400px;"></div>
+
+        <!-- Phần bình luận phản hồi của sinh viên -->
+        <div id="studentFeedback" style="width: 50%; padding: 20px;">
+            <h3>Lastest Student Feedback</h3>
+            <!-- Nội dung bình luận sẽ được thêm vào đây -->
+            <div id="feedbackComments">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                    <tr>
+                        <th style="border: 1px solid #ddd; padding: 8px;">No.</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Student ID</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Student Name</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Comment</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="comment, iterStat : ${feedbacks}">
+                        <td style="border: 1px solid #ddd; padding: 8px;" th:text="${iterStat.index + 1}"></td>
+                        <td style="border: 1px solid #ddd; padding: 8px;" th:text="${comment.student.id}"></td>
+                        <td style="border: 1px solid #ddd; padding: 8px;" th:text="${comment.student.name}"></td>
+                        <td style="border: 1px solid #ddd; padding: 8px;" th:text="${comment.comment}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

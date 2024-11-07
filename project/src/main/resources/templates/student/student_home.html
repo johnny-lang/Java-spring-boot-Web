@@ -1,0 +1,110 @@
+    <!DOCTYPE html>
+    <html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link rel="icon" type="image/x-icon" th:href="@{/assets/favicon.ico}" />
+        <link rel="stylesheet" th:href="@{/css/styles.css}">
+    </head>
+    <body>
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar-->
+        <div class="border-end bg-white" id="sidebar-wrapper">
+            <div class="sidebar-heading border-bottom bg-light">Option</div>
+            <div class="list-group list-group-flush">
+                <a class="list-group-item list-group-item-action list-group-item-light p-3" th:href="@{/students/username}"  data-url="/students/username">Student Information</a>
+                <a class="list-group-item list-group-item-action list-group-item-light p-3" th:href="@{/subject/student}" data-url="/subject/student">Classes</a>
+                <a class="list-group-item list-group-item-action list-group-item-light p-3" th:href="@{/subject//student/register}" data-url="/subject/student/register">Register</a>
+                <a class="list-group-item list-group-item-action list-group-item-light p-3" th:href="@{/scoreboard/student}" data-url="/scoreboard/student">Grade</a>
+                <a class="list-group-item list-group-item-action list-group-item-light p-3" th:href="@{/students/feedback}" data-url="/students/feedback">Feedback</a>
+            </div>
+        </div>
+        <!-- Page content wrapper-->
+        <div id="page-content-wrapper">
+            <!-- Top navigation-->
+            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+                <div class="container-fluid">
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav ms-auto mt-2 mt-lg-0">
+<!--                            <li class="nav-item active"><a class="nav-link" href="#!">Home</a></li>-->
+<!--                            <li class="nav-item"><a class="nav-link" href="#!">Link</a></li>-->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Dropdown</a>
+                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                    <form th:action="@{/logout}" method="POST">
+                                        <button type="submit" class="dropdown-item">Logout</button>
+                                    </form>
+                                    <div class="dropdown-divider"></div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+            <!-- Page content-->
+            <div id="content-area" class="container mt-4">
+                <!-- Content will be loaded here via AJAX -->
+
+            </div>
+        </div>
+    </div>
+    <!-- Bootstrap core JS-->
+    <script th:src="@{../js/bootstrap.bundle.min.js}"></script>
+    <!-- Core theme JS-->
+    <script th:src="@{../js/scripts.js}"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const links = document.querySelectorAll(".list-group-item");
+
+            links.forEach(link => {
+                link.addEventListener("click", function(event) {
+                    event.preventDefault();
+                    const url = link.getAttribute("data-url");
+
+                    // Gửi yêu cầu AJAX
+                    fetch(url, {
+                        headers: {
+                            "X-Requested-With": "XMLHttpRequest"
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        // Chèn nội dung của fragment vào vùng #content-area
+                        document.querySelector("#content-area").innerHTML = html;
+                    })
+                    .catch(error => console.error("Error loading page content:", error));
+                });
+            });
+
+            // Thêm sự kiện cho form hủy đăng ký
+            const unenrollForms = document.querySelectorAll('.unenroll-form');
+
+            unenrollForms.forEach(form => {
+                form.addEventListener('submit', function(event) {
+                    event.preventDefault(); // Ngăn chặn gửi form mặc định
+
+                    // Gửi yêu cầu AJAX
+                    fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: new URLSearchParams(new FormData(form)) // Chuyển đổi dữ liệu form thành URL-encoded
+                    })
+                    .then(response => response.text())
+                    .then(message => {
+                        // Thay thế nội dung trong content-area với thông báo thành công
+                        document.querySelector("#content-area").innerHTML = `<div class="alert alert-success">${message}</div>`;
+                    })
+                    .catch(error => console.error("Error processing unenroll:", error));
+                });
+            });
+        });
+    </script>
+    </body>
+    </html>
